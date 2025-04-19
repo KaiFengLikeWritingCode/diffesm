@@ -1,0 +1,12 @@
+defaults:
+  - _self_
+  - paths: default
+
+
+esm: SST_MODEL         # The ESM you want to process
+scenario: rcp85   # The scenario you want to process
+num_chunks: 40    # How many chunks to split each realization into
+                  # make this number as many cores as you have available
+
+start_year: 1982  # Start year of the training data
+end_year: 2024    # End year of the training data

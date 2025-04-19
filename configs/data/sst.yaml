@@ -1,0 +1,11 @@
+shared:
+  _target_: data.climate_dataset.ClimateDataset   # 类路径别改
+  seq_len: 28
+  esm: SST_MODEL
+  scenario: rcp85
+  vars: ['sst']            # 只训练一个变量
+  spatial_resolution: null # 保持原分辨率
+train:
+  realizations: ['r1','r2']
+val:
+  realizations: ['r3']
