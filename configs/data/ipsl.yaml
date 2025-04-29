@@ -1,7 +1,8 @@
 shared:
   _target_: data.climate_dataset.ClimateDataset   # 类路径别改
   seq_len: 28
-  esm: SST_MODEL
+  # esm: SST_MODEL
+  esm: IPSL
   scenario: rcp85
   vars: ['sst']            # 只训练一个变量
   spatial_resolution: null # 保持原分辨率

@@ -3,7 +3,8 @@ defaults:
   - paths: default
 
 
-esm: SST_MODEL         # The ESM you want to process
+# esm: SST_MODEL         # The ESM you want to process
+esm: IPSL 
 scenario: rcp85   # The scenario you want to process
 num_chunks: 40    # How many chunks to split each realization into
                   # make this number as many cores as you have available

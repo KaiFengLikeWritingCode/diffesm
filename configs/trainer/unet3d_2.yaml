@@ -4,13 +4,11 @@ hyperparameters:
   max_epochs: 10
   sample_every: 500
   save_every: 500
-  batch_size: 4
+  batch_size: 1
   save_dir: checkpoints
   save_name: ipsl_tas_rcp85.pt
-  # load_path: checkpoints3/ipsl_tas_rcp85_4.pt  # The path to checkpoint to load from
   load_path: null  # The path to checkpoint to load from
   lr: 0.0001
-  # lr: 0.00001
   sample_steps: 250
 
 dataloader:

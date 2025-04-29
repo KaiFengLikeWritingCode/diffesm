@@ -1,0 +1,5 @@
+# configs/dataset/climate_dataset.yaml
+
+# 告诉 Hydra 当看到 `- dataset: climate_dataset` 时，
+# 要 instantiate 的类是谁
+_target_: data.climate_dataset.ClimateDataset

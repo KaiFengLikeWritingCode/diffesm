@@ -1,26 +1,46 @@
+# configs/generate.yaml
+
 defaults:
   - _self_
   - model: unet_3d
   - scheduler: continuousddpm
   - paths: default
+  - dataset: climate_dataset   # ← 新增这一行，引入 configs/dataset/climate_dataset.yaml
 
-# Seed for random number generators
+# 随机种子
 seed: 42
 
-load_path: checkpoints/ipsl_tas_rcp85_4.pt
+# 模型 checkpoint 路径
+load_path: checkpoints/ipsl_tas_rcp85_9.pt
+
+# Earth System Model 和情景
 esm: IPSL
 scenario: rcp85
-gen_mode: gen  # Either gen/val/test
+
+# 生成设置
+samples_per: 1
+gen_mode: gen              # 可选 gen/val/test
+spatial_resolution: 0.25
+
+# 生成时的 batch & 步数
 batch_size: 8
 sample_steps: 250
-start_year: 2080
-end_year: 2100
-variable: tas   # Only works with a single variable, for now
-save_name: null  # Only set a save name if you want something special added to your save path
 
-dataset:
-  _target_: data.climate_dataset.ClimateDataset
-  seq_len: 28
+# 时间范围
+start_year: 1996
+end_year: 2009
 
+# 要生成的变量列表（必须是列表）
+variables:
+  - sst
+
+# 可选：输出文件名后缀
+save_name: null
+
+# 加速器配置
 accelerator:
   mixed_precision: fp16
+
+# === 针对 dataset 组的字段覆盖 ===
+dataset:
+  seq_len: 28 

@@ -63,6 +63,9 @@ class UNetTrainer:
 
         self.scheduler.set_timesteps(self.sample_steps)
 
+        if not hasattr(self, "cond_loss_scaling"):
+            self.cond_loss_scaling = 1.0
+
         # Keep track of our exponential moving average weights
         self.ema_model = EMA(
             self.model,
@@ -194,14 +197,38 @@ class UNetTrainer:
 
             progress_bar.close()
 
-    def get_original_sample(self, noisy_sample, model_output, timesteps):
+    # def get_original_sample(self, noisy_sample, model_output, timesteps):
         
-        alpha_prod_t = self.scheduler.alphas_cumprod[timesteps].view(-1, 1, 1, 1, 1)
-        beta_prod_t = 1 - alpha_prod_t
+    #     alpha_prod_t = self.scheduler.alphas_cumprod[timesteps].view(-1, 1, 1, 1, 1)
+    #     beta_prod_t = 1 - alpha_prod_t
 
-        pred_original_sample = (alpha_prod_t**0.5) * noisy_sample - (beta_prod_t**0.5) * model_output
+    #     pred_original_sample = (alpha_prod_t**0.5) * noisy_sample - (beta_prod_t**0.5) * model_output
 
-        return pred_original_sample
+    #     return pred_original_sample
+
+    def get_original_sample(self, noisy_sample, model_output, timesteps):
+        """
+        反演出原始干净的样本 x0：
+        - 离散调度器：用 alphas_cumprod、1-alphas_cumprod
+        - 连续调度器：用 log_snr -> alpha, sigma
+        """
+        if isinstance(self.scheduler, ContinuousDDPM):
+            # timesteps already = log_snr(t) in [batch]
+            # 扩展到 [B,1,1,1,1] 为后面广播
+            shape = [timesteps.shape[0]] + [1]*(noisy_sample.ndim-1)
+            log_snr = timesteps.view(*shape)
+            alpha = torch.sqrt(torch.sigmoid(log_snr))
+            sigma = torch.sqrt(torch.sigmoid(-log_snr))
+            # 连续 DDPM 的反演公式 x0 = α x_t - σ v
+            return alpha * noisy_sample - sigma * model_output
+        else:
+            # 原离散逻辑
+            # alphas_cumprod: [num_train_timesteps]
+            alpha_prod_t = self.scheduler.alphas_cumprod[timesteps].view(-1,1,1,1,1)
+            beta_prod_t  = 1 - alpha_prod_t
+            # x0 = sqrt(alpha_bar) * x_t - sqrt(1-alpha_bar) * eps_pred
+            return alpha_prod_t.sqrt() * noisy_sample - beta_prod_t.sqrt() * model_output
+
 
 
 

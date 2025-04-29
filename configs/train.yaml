@@ -3,6 +3,7 @@ defaults:
   - data: ipsl
   - model: unet_3d
   - scheduler: continuousddpm
+  # - scheduler: diffusers.schedulers.DDPMScheduler
   - trainer: unet3d
   - paths: default
 

@@ -110,7 +110,7 @@ def main(config: DictConfig) -> None:
     ), "Number of samples must be 1 for val and test"
 
     # Initialize all necessary objects
-    accelerator = Accelerator(**config.accelerator)
+    accelerator = Accelerator(**config.accelerator, even_batches=False)
 
     dataset: ClimateDataset = instantiate(
         config.dataset,
@@ -126,7 +126,7 @@ def main(config: DictConfig) -> None:
 
     if config.gen_mode == "gen":
         # Load the model from the checkpoint
-        chkpt: Checkpoint = torch.load(config.load_path, map_location="cpu", weights_only=False)
+        chkpt: Checkpoint = torch.load(config.load_path, map_location="cpu")
         model = chkpt["EMA"].eval()
         model = model.to(accelerator.device)
     else:
@@ -135,12 +135,6 @@ def main(config: DictConfig) -> None:
     # Grab the Xarray dataset from the dataset object
     xr_ds = dataset.xr_data.load()
 
-    # print("==========")
-    # print("\\\")
-    # print(xr_ds)
-    # print("\\\")
-    # print("==========")
-    
     # Restrict days to the first 28 days of each month and select years
     xr_ds = xr_ds.sel(time=xr_ds.time.dt.day.isin(range(1, 29)))
     xr_ds = xr_ds.sel(time=slice(str(config.start_year), str(config.end_year)))
@@ -178,11 +172,7 @@ def main(config: DictConfig) -> None:
                 )
 
         gen_samples = accelerator.gather_for_metrics(gen_samples)
-        # gen_samples = xr.concat(gen_samples, "time").drop_vars("height").sortby("time")
-        ds = xr.concat(gen_samples, "time")
-        if "height" in ds.data_vars:
-            ds = ds.drop_vars("height")
-        gen_samples = ds.sortby("time")
+        gen_samples = xr.concat(gen_samples, "time").drop_vars("height").sortby("time")
 
         if accelerator.is_main_process:
 
